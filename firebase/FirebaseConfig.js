@@ -1,5 +1,8 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from "firebase/app" 
+import { getFirestore } from "firebase/firestore"
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_API_KEY,
@@ -8,8 +11,16 @@ const firebaseConfig = {
   storageBucket: process.env.EXPO_PUBLIC_STORAGE_BUCKET,
   messagingSenderId: process.env.EXPO_PUBLIC_MSG_SENDER_ID,
   appId: process.env.EXPO_PUBLIC_APP_ID
-};
+}
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const LOC_REF = 'locations';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig)
+
+export const db = getFirestore(app)
+export const LOCATION_REF = 'locations'
+export const USERS_REF = 'users'
+
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+})

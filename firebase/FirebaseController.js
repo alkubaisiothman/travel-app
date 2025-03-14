@@ -1,27 +1,33 @@
-import { useEffect, useState } from "react";
-import { db, LOC_REF } from "./Config";
-import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
 
-export function useLocations() {
-    const [locations, setLocations] = useState([]);
+import { addDoc, collection, getDocs, onSnapshot, query } from "firebase/firestore"
+import { useEffect, useState } from "react"
+import { auth, db, LOCATION_REF, USERS_REF } from "./firebaseConfig"
 
-    useEffect(() => {
-        const locationQuery = query(collection(db, LOC_REF));
+export function useFireLocations(){
+    const [locations, setLocations] = useState([])
 
-        const unsubscribe = onSnapshot(locationQuery, querySnapshot => {
-            setLocations(querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })));
-        });
+    useEffect(()=>{
 
-        return () => unsubscribe(); 
-    }, []);
+       const q = query(collection(db, LOCATION_REF))
 
-    return locations;
+       onSnapshot(q, querySnapshot => {
+        setLocations(querySnapshot.docs.map(doc => {
+            return {id: doc.id, ...doc.data()}  
+       }))
+    })
+    }, [])
+
+    return locations  
 }
 
-export function addNewLocation(name, description, rating) {
-    addDoc(collection(db, LOC_REF), { name, description, rating })
-        .catch(error => console.error("Error adding location: ", error.message));
+export function addLocation(location, description, rating){
+    const subColRef = collection(db, USERS_REF, auth.currentUser.uid, LOCATION_REF)
+    addDoc(subColRef, {location, description, rating})
+        .catch(error => console.log(error.message))
+}
+
+export function getLocations(location, description, rating){
+    const subColRef = collection(db, USERS_REF, auth.currentUser.uid, LOCATION_REF)
+    getDocs(subColRef, {location, description, rating})
+        .catch(error => console.log(error.message))
 }
