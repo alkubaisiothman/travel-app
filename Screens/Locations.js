@@ -1,55 +1,62 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { ScrollView } from "react-native";
-import { Button, List, Text } from "react-native-paper";
-import { getLocationsFromFirestore } from "../firebase/FirestoreController";
-import { useEffect, useState } from "react";
-import { containerStyles } from '../Styles/Styles';
+import { StatusBar } from 'expo-status-bar'
+import { useContext } from 'react'
+import { View, ScrollView } from 'react-native'
+import { Button, Text, IconButton } from 'react-native-paper'
+import { Rating } from 'react-native-ratings'
+import { LocationContext } from '../contexts/locationContext'
+import { useNavigation } from '@react-navigation/native'
+import { styles, Theme } from "../styles/Styles"
+import { UserLocationContext } from '../contexts/UserLocationsContext'
 
-export default function LocationsScreen({ navigation }) {
+export function Locations() {
 
-  const [locations, setLocations] = useState([]);
+    const { setLocation } = useContext(LocationContext)
 
-  useEffect(() => {
-    const fetchLocations = async () => {
-      const locationData = await getLocationsFromFirestore();
-      setLocations(locationData);
-    };
-    fetchLocations();
-  }, []);
+    const navigation = useNavigation()
 
-  return (
-    <ScrollView style={containerStyles.wrapper}>
-      <Button 
-        mode='contained' 
-        style={containerStyles.addButton} 
-        onPress={() => navigation.navigate('AddLocation')}>
-        Add New Location
-      </Button>
-      {locations.map((loc) => (
-        <List.Item
-          style={containerStyles.card}
-          key={loc.id}
-          titleStyle={containerStyles.title}
-          title={loc.name}
-          description={() => (
-            <>
-              <Text>{loc.description}</Text>
-              <ScrollView horizontal>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <MaterialIcons
-                    key={index}
-                    name={index < loc.rating ? 'star' : 'star-border'}
-                    size={25}
-                    color='gold'
-                  />
-                ))}
-              </ScrollView>
-            </>
-          )}
-          onPress={() => navigation.navigate('Map', { location: loc.name })}
-          right={(props) => <MaterialIcons {...props} name='location-on' color='red' size={35} />}
-        />
-      ))}
-    </ScrollView>
-  );
+    const locations = useContext(UserLocationContext)
+
+    return (
+            <View style={styles.container}>
+                <Text style={styles.headline} variant='headlineMedium'>My Locations</Text>
+                <Button
+                    mode="contained"
+                    onPress={() => navigation.navigate('Adding Location')}
+                >Add New Location</Button>
+                <ScrollView>
+                    {locations.map((item, index) => (
+                        <View style={[styles.item, { backgroundColor: Theme.colors.elevation.level3 }]} key={index}>
+                            <View style={styles.itemView}>
+                                <View >
+                                    <Text variant="headlineSmall">{item.location}</Text>
+                                    <Text variant="bodyLarge">{item.description}</Text>
+                                </View>
+                                <IconButton
+                                    iconColor={Theme.colors.secondary}
+                                    style={styles.mapIcon}
+                                    icon="map-marker"
+                                    size={40}
+                                    onPress={() => {
+                                        setLocation(item.location)
+                                        navigation.navigate('Map')
+                                    }}
+                                />
+                            </View>
+                            <Rating
+                                type='custom'
+                                ratingColor={Theme.colors.primary}
+                                tintColor={Theme.colors.elevation.level3}
+                                ratingCount={5}
+                                startingValue={item.rating}
+                                readonly
+                                starContainerStyle={{
+                                    alignSelf: "center",
+                                    backgroundColor: '#e7edda'
+                                }}
+                            />
+                        </View>
+                    ))}
+                </ScrollView>
+            </View>
+    )
 }
